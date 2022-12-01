@@ -28,9 +28,8 @@ def consolidate_files_split(input_path, out_file_1_name, out_file_2_name): #conc
 	print(f'Finished consolidating {idx+1} files from {input_path} to {out_file_1_name} and {out_file_2_name}')
 
 if __name__ == '__main__':
-	consolidate_files("aclImdb_v1\\aclImdb\\train\\pos", 'train_pos_reviews.txt')
-	consolidate_files("aclImdb_v1\\aclImdb\\train\\neg", 'train_neg_reviews.txt')
-	consolidate_files_split("aclImdb_v1\\aclImdb\\test\\pos", 'dev_pos_reviews.txt', 'test_pos_reviews.txt')
-	consolidate_files_split("aclImdb_v1\\aclImdb\\test\\neg", 'dev_neg_reviews.txt', 'test_neg_reviews.txt')
-
-
+	consolidate_files_split("aclImdb_v1\\aclImdb\\train\\pos", 'train_pos_reviews.txt', 'dev_pos_reviews.txt')
+	consolidate_files_split("aclImdb_v1\\aclImdb\\train\\neg", 'train_neg_reviews.txt', 'dev_neg_reviews.txt')
+	consolidate_files("aclImdb_v1\\aclImdb\\test\\pos", "test_pos_reviews.txt")
+	consolidate_files("aclImdb_v1\\aclImdb\\test\\neg", "test_neg_reviews.txt")
+	
