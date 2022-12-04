@@ -29,14 +29,13 @@ dev_all = shuffle(dev_pos + dev_neg)
 train_ratings, train_reviews = rating_review_split(train_all)
 dev_ratings, dev_reviews = rating_review_split(dev_all)
 
-#print(train_ratings)
-
 from sklearn.feature_extraction.text import TfidfVectorizer
 
 from scipy import stats
 
 normed_train_ratings = stats.zscore(train_ratings, axis=None)
 normed_dev_ratings = stats.zscore(dev_ratings, axis=None)
+#uses z-scores to normalize ratings, (rating - mean)/stdev
 
 def get_tf_idfs(doc_list): #calculates tf-idf scores for each doc, returns those and a list of words in all docs
 	num_docs = len(doc_list)
@@ -52,38 +51,54 @@ def get_tf_idfs(doc_list): #calculates tf-idf scores for each doc, returns those
 	tf_idfs = vectorizer.fit_transform(reviews)
 	
 	return tf_idfs
-	
+
 from sklearn.decomposition import LatentDirichletAllocation
 
-def lda(tf_idfs, topics = 5): #does latent dirichlet analysis on tf-idf scores to find topics
+def lda(tf_idfs, topics, test_tf_idfs): #does latent dirichlet analysis on tf-idf scores to find topics
 	lda = LatentDirichletAllocation(n_components=topics, random_state=0)
 	doc_topics = lda.fit_transform(tf_idfs)
-	return lda.components_, doc_topics
+	test_doc_topics = lda.transform(test_tf_idfs)
+	return lda.components_, doc_topics, test_doc_topics
 
 from sklearn.linear_model import LinearRegression
 
-def find_polarity_topics(doc_topics, review_polarities):
+def find_polarity_topics(doc_topics, review_polarities): 
+	#linear regression with array of topic scores (X) and polarities (Y)
 	reg = LinearRegression().fit(doc_topics, review_polarities)
 	print(reg.score(doc_topics,review_polarities))
 	return reg.coef_, reg.intercept_
+	
+def predict_polarity(coeffs, intercept, doc_topics): #uses topic weights to predict polarity from topics
+	return np.dot(coeffs, doc_topics) + intercept 
 
 def main():
 	train_tf_idfs = get_tf_idfs(train_all) #get training data tf-idfs
 	
-	dev_tf_idfs = get_tf_idfs(dev_all)
+	dev_tf_idfs = get_tf_idfs(dev_all) #get development data tf-idfs
 	
-	topic_weights, doc_topics = lda(train_tf_idfs)
+	topic_weights, doc_topics, test_doc_topics = lda(train_tf_idfs, 100, dev_tf_idfs)
+	#do lda on tf-idfs and apply the results to get topics for dev set
 	
-	print(topic_weights.shape)
+	coefs, y_intercept = find_polarity_topics(doc_topics, normed_train_ratings)
+	#do linear regression to predict polarity from topics
 	
-	print(doc_topics.shape)
+	predicted_polarities = [predict_polarity(coefs, y_intercept, topics) > 0 for topics in test_doc_topics]
+	actual_polarities = [rating >= 7 for rating in dev_ratings]
+	#convert sliding scale to discrete
 	
-	#print(doc_topics)
+	from sklearn.metrics import precision_score, accuracy_score, recall_score
 	
-	print(find_polarity_topics(doc_topics, normed_train_ratings))
+	acc, pre, rec = accuracy_score(actual_polarities, predicted_polarities), precision_score(actual_polarities, predicted_polarities), recall_score(actual_polarities, predicted_polarities)
 	
-	#for (rating, review), topics in zip(train_all, doc_topics):
-		#print(rating, review, topics)
+	#print out statistical measures
+	print('accuracy %%%.2f' % (100*acc))
+	print('precision %%%.2f' % (100*pre))
+	print('recall %%%.2f' % (100*rec))
+	print('f-score %%%.2f' % (100* (2/(1/pre + 1/rec))))
+	
+	from sklearn.metrics import confusion_matrix
+	
+	print(confusion_matrix(actual_polarities, predicted_polarities))
 	
 
 if __name__ == '__main__':
