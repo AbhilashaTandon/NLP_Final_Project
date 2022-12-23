@@ -1,0 +1,27 @@
+Nearest Neighbors 0.7341687774963338
+	precision	recall	f1-score	support
+
+	0	0.68	0.87	0.76	7447
+	1	0.82	0.60	0.70	7555
+
+	accuracy	0.73	15002
+	macro avg	0.75	0.74	0.73	15002
+weighted avg	0.75	0.73	0.73	15002
+Linear SVM 0.8110918544194108
+	precision	recall	f1-score	support
+
+	0	0.87	0.73	0.79	7447
+	1	0.77	0.89	0.83	7555
+
+	accuracy	0.81	15002
+	macro avg	0.82	0.81	0.81	15002
+weighted avg	0.82	0.81	0.81	15002
+RBF SVM 0.8852153046260499
+	precision	recall	f1-score	support
+
+	0	0.90	0.86	0.88	7447
+	1	0.87	0.91	0.89	7555
+
+	accuracy	0.89	15002
+	macro avg	0.89	0.89	0.89	15002
+weighted avg	0.89	0.89	0.89	15002
